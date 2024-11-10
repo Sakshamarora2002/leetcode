@@ -1,13 +1,11 @@
 # Write your MySQL query statement below
-     
-SELECT 
-    CASE 
-        WHEN COUNT(DISTINCT num) = 1 THEN NULL
-        ELSE (SELECT num  
-              FROM MyNumbers
-              GROUP BY num
-              HAVING COUNT(*) = 1
-              ORDER BY num DESC
-              LIMIT 1)
-    END AS num
-FROM MyNumbers;
+WITH RankedNumbers AS (
+    SELECT num, 
+           RANK() OVER (ORDER BY num) AS rk,
+           COUNT(*) OVER (PARTITION BY num) AS cnt
+    FROM MyNumbers
+)
+SELECT MAX(num) as num
+FROM RankedNumbers
+WHERE cnt = 1;  -- Ensures only distinct numbers are considered
+
